@@ -1,0 +1,35 @@
+{
+  "name": "mcp-ui-playground",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MCP server with UI capabilities using the Apps Extension",
+  "main": "dist/index.js",
+  "bin": "dist/index.js",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "dev:http": "tsx src/http-server.ts",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "start": "node dist/index.js",
+    "inspector": "npx @modelcontextprotocol/inspector -- tsx src/index.ts",
+    "inspector:http": "npx @modelcontextprotocol/inspector http://localhost:3000/mcp"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "ui"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "express": "^5.2.1",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.8",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

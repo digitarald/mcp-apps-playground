@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "mcp-ui-playground": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/dist/index.js"],
+      "dev": {
+        "watch": "${workspaceFolder}/dist/index.js",
+        "debug": {
+          "type": "node"
+        }
+      }
+    }
+  },
+  "inputs": []
+}
