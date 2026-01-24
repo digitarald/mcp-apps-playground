@@ -1,5 +1,5 @@
 ---
-name: mcp-ui
+name: mcp-apps
 description: 'Build MCP Apps - interactive HTML UIs rendered in chat via the MCP Apps Extension (SEP-1865). Use when creating MCP tools that need rich UI beyond text, adding interactive forms/visualizations to MCP servers, configuring structuredContent for UI data passing, or debugging MCP UI rendering issues. Keywords: MCP Apps, SEP-1865, ui://, text/html;profile=mcp-app, structuredContent, postMessage, registerTool _meta.'
 ---
 

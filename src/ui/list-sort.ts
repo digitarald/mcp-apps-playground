@@ -526,7 +526,7 @@ export function LIST_SORT_UI(): string {
           protocolVersion: '2025-06-18',
           capabilities: {},
           clientInfo: {
-            name: 'mcp-ui-playground-list-sort',
+            name: 'mcp-apps-playground-list-sort',
             version: '1.0.0'
           }
         });

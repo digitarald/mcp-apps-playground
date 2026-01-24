@@ -1,6 +1,6 @@
 {
   "servers": {
-    "mcp-ui-playground": {
+    "mcp-apps-playground": {
       "type": "stdio",
       "command": "node",
       "args": ["${workspaceFolder}/dist/index.js"],

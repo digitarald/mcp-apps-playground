@@ -142,7 +142,7 @@ export function HELLO_WORLD_UI() {
     <span class="header-icon">👋</span>
     <div>
       <div class="greeting" id="greeting">Hello, World!</div>
-      <div class="subtitle">MCP UI Playground</div>
+      <div class="subtitle">MCP Apps Playground</div>
     </div>
   </div>
   
@@ -416,7 +416,7 @@ export function HELLO_WORLD_UI() {
           protocolVersion: '2025-06-18',
           capabilities: {},
           clientInfo: {
-            name: 'mcp-ui-playground-greeting',
+            name: 'mcp-apps-playground-greeting',
             version: '1.0.0'
           }
         });

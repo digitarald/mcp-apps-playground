@@ -1,6 +1,6 @@
-# MCP UI Playground
+# MCP Apps Playground
 
-Example MCP server with interactive HTML UIs. For MCP Apps development guidance, see the **mcp-ui skill**.
+Example MCP server with interactive HTML UIs. For MCP Apps development guidance, see the **mcp-apps skill**.
 
 ## Project Structure
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * MCP UI Playground - Hello World Server (HTTP transport)
+ * MCP Apps Playground - Hello World Server (HTTP transport)
  *
  * Exposes MCP server via Streamable HTTP for web-based clients.
  * Uses Apps Extension (SEP-1865) for UI rendering.
@@ -16,12 +16,12 @@ import { HELLO_WORLD_UI } from "./ui/hello-world.js";
 import { LIST_SORT_UI } from "./ui/list-sort.js";
 // Create MCP server with metadata
 const server = new McpServer({
-    name: "mcp-ui-playground",
+    name: "mcp-apps-playground",
     version: "1.0.0",
 });
 // Register UI resource with ui:// scheme (Apps Extension pattern)
 // The template is STATIC - data comes via ui/notifications/tool-input
-server.resource("greeting-ui", "ui://mcp-ui-playground/greeting", {
+server.resource("greeting-ui", "ui://mcp-apps-playground/greeting", {
     description: "Interactive greeting UI panel",
     mimeType: "text/html;profile=mcp-app",
 }, async (uri) => {
@@ -53,7 +53,7 @@ server.registerTool("hello_world", {
     // SEP-1865: Tool metadata linking to UI resource
     _meta: {
         ui: {
-            resourceUri: "ui://mcp-ui-playground/greeting",
+            resourceUri: "ui://mcp-apps-playground/greeting",
             visibility: ["model", "app"],
         },
     },
@@ -72,7 +72,7 @@ server.registerTool("hello_world", {
     return response;
 });
 // Register list-sort UI resource
-server.resource("list-sort-ui", "ui://mcp-ui-playground/list-sort", {
+server.resource("list-sort-ui", "ui://mcp-apps-playground/list-sort", {
     description: "Interactive list sorting UI panel",
     mimeType: "text/html;profile=mcp-app",
 }, async (uri) => {
@@ -104,7 +104,7 @@ server.registerTool("list_sort", {
     },
     _meta: {
         ui: {
-            resourceUri: "ui://mcp-ui-playground/list-sort",
+            resourceUri: "ui://mcp-apps-playground/list-sort",
             visibility: ["model", "app"],
         },
     },
@@ -122,7 +122,7 @@ const app = express();
 app.use(express.json());
 // Health check endpoint
 app.get("/health", (_req, res) => {
-    res.json({ status: "ok", server: "mcp-ui-playground" });
+    res.json({ status: "ok", server: "mcp-apps-playground" });
 });
 // MCP endpoint
 app.post("/mcp", async (req, res) => {
@@ -149,7 +149,7 @@ app.get("/mcp/sse", async (req, res) => {
 });
 const port = parseInt(process.env.PORT || "3000");
 app.listen(port, () => {
-    console.log(`🚀 MCP UI Playground server running at http://localhost:${port}`);
+    console.log(`🚀 MCP Apps Playground server running at http://localhost:${port}`);
     console.log(`📡 MCP endpoint: http://localhost:${port}/mcp`);
     console.log(`🔍 Test with: npx @modelcontextprotocol/inspector http://localhost:${port}/mcp`);
 });

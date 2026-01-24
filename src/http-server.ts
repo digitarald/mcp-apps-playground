@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * MCP UI Playground - Hello World Server (HTTP transport)
+ * MCP Apps Playground - Hello World Server (HTTP transport)
  * 
  * Exposes MCP server via Streamable HTTP for web-based clients.
  * Uses Apps Extension (SEP-1865) for UI rendering.
@@ -18,7 +18,7 @@ import { LIST_SORT_UI } from "./ui/list-sort.js";
 
 // Create MCP server with metadata
 const server = new McpServer({
-  name: "mcp-ui-playground",
+  name: "mcp-apps-playground",
   version: "1.0.0",
 });
 
@@ -26,7 +26,7 @@ const server = new McpServer({
 // The template is STATIC - data comes via ui/notifications/tool-input
 server.resource(
   "greeting-ui",
-  "ui://mcp-ui-playground/greeting",
+  "ui://mcp-apps-playground/greeting",
   {
     description: "Interactive greeting UI panel",
     mimeType: "text/html;profile=mcp-app",
@@ -64,7 +64,7 @@ server.registerTool(
     // SEP-1865: Tool metadata linking to UI resource
     _meta: {
       ui: {
-        resourceUri: "ui://mcp-ui-playground/greeting",
+        resourceUri: "ui://mcp-apps-playground/greeting",
         visibility: ["model", "app"],
       },
     },
@@ -94,7 +94,7 @@ server.registerTool(
   // Register list-sort UI resource
   server.resource(
     "list-sort-ui",
-    "ui://mcp-ui-playground/list-sort",
+    "ui://mcp-apps-playground/list-sort",
     {
       description: "Interactive list sorting UI panel",
       mimeType: "text/html;profile=mcp-app",
@@ -132,7 +132,7 @@ server.registerTool(
       },
       _meta: {
         ui: {
-          resourceUri: "ui://mcp-ui-playground/list-sort",
+          resourceUri: "ui://mcp-apps-playground/list-sort",
           visibility: ["model", "app"],
         },
       },
@@ -154,7 +154,7 @@ app.use(express.json());
 
 // Health check endpoint
 app.get("/health", (_req: Request, res: Response) => {
-  res.json({ status: "ok", server: "mcp-ui-playground" });
+  res.json({ status: "ok", server: "mcp-apps-playground" });
 });
 
 // MCP endpoint
@@ -190,7 +190,7 @@ app.get("/mcp/sse", async (req: Request, res: Response) => {
 const port = parseInt(process.env.PORT || "3000");
 
 app.listen(port, () => {
-  console.log(`🚀 MCP UI Playground server running at http://localhost:${port}`);
+  console.log(`🚀 MCP Apps Playground server running at http://localhost:${port}`);
   console.log(`📡 MCP endpoint: http://localhost:${port}/mcp`);
   console.log(`🔍 Test with: npx @modelcontextprotocol/inspector http://localhost:${port}/mcp`);
 });

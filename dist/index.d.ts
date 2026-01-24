@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * MCP UI Playground - Hello World Server (stdio transport)
+ * MCP Apps Playground - Hello World Server (stdio transport)
  *
  * Demonstrates MCP server with UI capabilities using the Apps Extension (SEP-1865).
  *

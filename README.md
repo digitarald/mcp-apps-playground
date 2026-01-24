@@ -1,12 +1,12 @@
-# MCP UI Playground
+# MCP Apps Playground
 
 A hello world MCP server demonstrating UI capabilities using the [MCP Apps Extension (SEP-1865)](https://github.com/modelcontextprotocol/ext-apps).
 
 ## Features
 
-- 🔧 **MCP Tools** - `hello_world` tool with Zod schema validation
+- 🔧 **MCP Tools** - `hello_world` and `list_sort` tools with Zod schema validation
 - 📱 **Apps Extension** - HTML UI via `ui://` resources with `text/html;profile=mcp-app`
-- 📦 **structuredContent** - Data passed to UI templates
+- 📦 **structuredContent** - Data passed to UI via `ui/notifications/tool-input`
 - 🚀 **Dual Transport** - stdio (default) and HTTP/SSE
 
 ## Quick Start
@@ -36,7 +36,8 @@ src/
 ├── index.ts           # Main server (stdio transport)
 ├── http-server.ts     # HTTP transport variant
 └── ui/
-    └── hello-world.ts # HTML UI template
+    ├── hello-world.ts # Greeting UI template
+    └── list-sort.ts   # Interactive list sorting UI
 ```
 
 ## MCP Configuration
@@ -48,7 +49,7 @@ Use the included `.vscode/mcp.json`:
 ```json
 {
   "servers": {
-    "mcp-ui-playground": {
+    "mcp-apps-playground": {
       "type": "stdio",
       "command": "node",
       "args": ["${workspaceFolder}/dist/index.js"]
@@ -62,9 +63,9 @@ Use the included `.vscode/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "mcp-ui-playground": {
+    "mcp-apps-playground": {
       "command": "node",
-      "args": ["/path/to/mcp-ui-playground/dist/index.js"]
+      "args": ["/path/to/mcp-apps-playground/dist/index.js"]
     }
   }
 }
@@ -79,7 +80,7 @@ UI resources are declared with `ui://` scheme and `text/html;profile=mcp-app` MI
 ```typescript
 server.resource(
   "greeting-ui",
-  "ui://mcp-ui-playground/greeting.html",
+  "ui://mcp-apps-playground/greeting",
   {
     description: "Interactive greeting UI panel",
     mimeType: "text/html;profile=mcp-app",
@@ -88,7 +89,7 @@ server.resource(
     contents: [{
       uri: uri.href,
       mimeType: "text/html;profile=mcp-app",
-      text: HELLO_WORLD_UI(name),
+      text: HELLO_WORLD_UI(),
     }],
   })
 );
@@ -96,38 +97,54 @@ server.resource(
 
 ### 2. Tool with UI Annotation
 
-Tools return `structuredContent` and `_meta.outputTemplate` to link to UI:
+Tools use `_meta.ui.resourceUri` to link to a UI resource. Data is passed via `structuredContent`:
 
 ```typescript
-server.tool("hello_world", "Greeting tool", schema, async ({ name }) => ({
-  content: [
-    { type: "text", text: `Hello, ${name}!` },
-    {
-      type: "resource",
-      resource: {
-        uri: "ui://mcp-ui-playground/greeting.html",
-        mimeType: "text/html;profile=mcp-app",
-        text: htmlContent,
+server.registerTool(
+  "hello_world",
+  {
+    description: "Display a Hello World greeting",
+    inputSchema: {
+      name: z.string().describe("Name to greet"),
+    },
+    _meta: {
+      ui: {
+        resourceUri: "ui://mcp-apps-playground/greeting",
+        visibility: ["model", "app"],
       },
     },
-  ],
-  structuredContent: { name, greeting },
-  _meta: { outputTemplate: "ui://mcp-ui-playground/greeting.html" },
-}));
+  },
+  async ({ name }) => ({
+    content: [{ type: "text", text: `Hello, ${name}!` }],
+    structuredContent: { name, greeting: `Hello, ${name}!` },
+  })
+);
 ```
 
 ### 3. UI Communication
 
-UIs communicate with the MCP host via postMessage:
+UIs communicate with the MCP host via postMessage JSON-RPC:
 
 ```javascript
-// Call a tool from the UI
-window.parent.postMessage({
-  jsonrpc: '2.0',
-  id: 'request-1',
-  method: 'tools/call',
-  params: { name: 'hello_world', arguments: { name: 'World' } }
-}, '*');
+// Initialize handshake (required)
+const result = await sendRequest('ui/initialize', {
+  protocolVersion: '2025-06-18',
+  capabilities: {},
+});
+sendNotification('ui/notifications/initialized', {});
+
+// Listen for tool data
+window.addEventListener('message', (e) => {
+  if (e.data.method === 'ui/notifications/tool-input') {
+    const { arguments: args } = e.data.params;
+    // Update UI with args
+  }
+});
+
+// Send message to chat
+await sendRequest('ui/message', {
+  content: [{ type: 'text', text: 'User selected: ...' }]
+});
 ```
 
 ## Resources

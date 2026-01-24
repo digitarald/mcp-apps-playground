@@ -1,5 +1,5 @@
 {
-  "name": "mcp-ui-playground",
+  "name": "mcp-apps-playground",
   "version": "1.0.0",
   "type": "module",
   "description": "MCP server with UI capabilities using the Apps Extension",
