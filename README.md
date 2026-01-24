@@ -1,13 +1,23 @@
 # MCP Apps Playground
 
-A hello world MCP server demonstrating UI capabilities using the [MCP Apps Extension (SEP-1865)](https://github.com/modelcontextprotocol/ext-apps).
+A demo MCP server showcasing interactive UI capabilities using the [MCP Apps Extension (SEP-1865)](https://github.com/modelcontextprotocol/ext-apps).
 
 ## Features
 
-- 🔧 **MCP Tools** - `hello_world` and `list_sort` tools with Zod schema validation
+- 🔧 **MCP Tools** - `hello_world`, `list_sort`, `flame_graph`, and `feature_flags` tools with Zod schema validation
 - 📱 **Apps Extension** - HTML UI via `ui://` resources with `text/html;profile=mcp-app`
 - 📦 **structuredContent** - Data passed to UI via `ui/notifications/tool-input`
+- 💬 **Bidirectional** - UIs can send messages back to chat via `ui/message`
 - 🚀 **Dual Transport** - stdio (default) and HTTP/SSE
+
+## Tools
+
+| Tool | Description | UI Features |
+|------|-------------|-------------|
+| `hello_world` | Simple greeting demo | Input field, preview, send message to chat |
+| `list_sort` | Interactive list reordering | Drag-and-drop, AI-assisted sorting, save order |
+| `flame_graph` | Performance profiler visualization | Click-to-zoom call hierarchy, tooltips, analyze hot paths |
+| `feature_flags` | Feature flag selector | Multi-select, env tabs (prod/stage/dev), generate SDK code |
 
 ## Quick Start
 
@@ -37,7 +47,9 @@ src/
 ├── http-server.ts     # HTTP transport variant
 └── ui/
     ├── hello-world.ts # Greeting UI template
-    └── list-sort.ts   # Interactive list sorting UI
+    ├── list-sort.ts   # Interactive list sorting UI
+    ├── flame-graph.ts # Performance flame graph visualization
+    └── feature-flags.ts # Feature flag selector UI
 ```
 
 ## MCP Configuration

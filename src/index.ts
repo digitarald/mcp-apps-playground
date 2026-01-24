@@ -19,6 +19,7 @@ import { z } from "zod";
 import { HELLO_WORLD_UI } from "./ui/hello-world.js";
 import { LIST_SORT_UI } from "./ui/list-sort.js";
 import { FLAME_GRAPH_UI } from "./ui/flame-graph.js";
+import { FEATURE_FLAGS_UI } from "./ui/feature-flags.js";
 import * as fs from "fs";
 
 // Log file for debugging client capabilities
@@ -461,7 +462,128 @@ ${analysis.recommendations.map((r: string) => `- ${r}`).join('\n')}`;
       ]
     };
   }
+  // =========================================
+  // Feature Flags Selector
+  // =========================================
 
+  // Register feature flags UI resource
+  server.resource(
+    "feature-flags-ui",
+    "ui://mcp-apps-playground/feature-flags",
+    {
+      description: "Feature flag selector with multi-select and environment support",
+      mimeType: "text/html;profile=mcp-app",
+    },
+    async (uri) => {
+      log(`📱 resources/read called for: ${uri.href}`);
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "text/html;profile=mcp-app",
+            text: FEATURE_FLAGS_UI(),
+          },
+        ],
+      };
+    }
+  );
+
+  // Register feature_flags tool
+  server.registerTool(
+    "feature_flags",
+    {
+      description: "Browse and select feature flags to generate SDK code. Shows flag status per environment (prod/staging/dev), rollout percentages, and tags. Multi-select flags to generate useFeatureFlag() hooks.",
+      inputSchema: {
+        environment: z.enum(["production", "staging", "development"]).optional().describe("Default environment to show"),
+        filter: z.string().optional().describe("Filter flags by name or tag"),
+        flags: z.array(z.object({
+          key: z.string(),
+          description: z.string(),
+          tags: z.array(z.string()),
+          status: z.object({
+            production: z.enum(["on", "off", "partial"]),
+            staging: z.enum(["on", "off", "partial"]),
+            development: z.enum(["on", "off", "partial"]),
+          }),
+          rollout: z.number().min(0).max(100),
+        })).optional().describe("Custom flags to display (uses sample data if not provided)"),
+      },
+      _meta: {
+        ui: {
+          resourceUri: "ui://mcp-apps-playground/feature-flags",
+          visibility: ["model", "app"],
+        },
+      },
+    },
+    async ({ environment, filter, flags }, extra) => {
+      const progressToken = (extra._meta as Record<string, unknown> | undefined)?.progressToken as string | number | undefined;
+      
+      if (progressToken !== undefined) {
+        await extra.sendNotification({
+          method: "notifications/progress",
+          params: {
+            progressToken,
+            progress: 0,
+            message: `🚩 Loading feature flags...`
+          }
+        });
+      }
+      
+      log(`🔧 Tool feature_flags called: env=${environment || 'production'}, filter=${filter || 'none'}`);
+      
+      // Use provided flags or sample data
+      const flagData = flags || getSimulatedFlags();
+      const filteredFlags = filter 
+        ? flagData.filter((f: { key: string; tags: string[] }) => f.key.includes(filter) || f.tags.includes(filter))
+        : flagData;
+      
+      const env = environment || 'production';
+      const onCount = filteredFlags.filter((f: { status: Record<string, string> }) => f.status[env] === 'on').length;
+      const partialCount = filteredFlags.filter((f: { status: Record<string, string> }) => f.status[env] === 'partial').length;
+      const offCount = filteredFlags.filter((f: { status: Record<string, string> }) => f.status[env] === 'off').length;
+      
+      return {
+        content: [{
+          type: "text" as const,
+          text: "## Feature Flags (" + env + ")\n\n" +
+            "**Total:** " + filteredFlags.length + " flags | ✅ " + onCount + " on | 🔶 " + partialCount + " partial | ⬚ " + offCount + " off\n\n" +
+            "### Available Flags\n" +
+            filteredFlags.map((f: { key: string; description: string; status: Record<string, string>; rollout: number }) => 
+              "- `" + f.key + "`: " + f.description + " (" + (f.status[env] === 'partial' ? f.rollout + '%' : f.status[env]) + ")"
+            ).join('\n') +
+            "\n\n*User can select flags in the UI to generate SDK code.*"
+        }],
+        structuredContent: {
+          environment: env,
+          totalFlags: filteredFlags.length,
+          summary: {
+            on: onCount,
+            partial: partialCount,
+            off: offCount,
+          },
+          flags: filteredFlags,
+        },
+      };
+    }
+  );
+
+  // Simulated feature flags
+  function getSimulatedFlags() {
+    return [
+      { key: 'checkout-v2', description: 'New checkout flow with saved cards', tags: ['experiment', 'payments'], status: { production: 'partial', staging: 'on', development: 'on' }, rollout: 25 },
+      { key: 'dark-mode', description: 'Enable dark mode toggle in settings', tags: ['rollout'], status: { production: 'on', staging: 'on', development: 'on' }, rollout: 100 },
+      { key: 'ai-suggestions', description: 'ML-powered product recommendations', tags: ['experiment', 'ml'], status: { production: 'off', staging: 'on', development: 'on' }, rollout: 0 },
+      { key: 'rate-limit-v2', description: 'Adaptive rate limiting algorithm', tags: ['ops'], status: { production: 'partial', staging: 'on', development: 'on' }, rollout: 50 },
+      { key: 'graphql-federation', description: 'Enable federated GraphQL gateway', tags: ['ops', 'api'], status: { production: 'off', staging: 'partial', development: 'on' }, rollout: 0 },
+      { key: 'social-login', description: 'OAuth with Google, GitHub, Apple', tags: ['rollout', 'auth'], status: { production: 'on', staging: 'on', development: 'on' }, rollout: 100 },
+      { key: 'realtime-collab', description: 'WebSocket-based real-time editing', tags: ['experiment'], status: { production: 'off', staging: 'off', development: 'on' }, rollout: 0 },
+      { key: 'cdn-next', description: 'Next-gen CDN with edge compute', tags: ['ops', 'infra'], status: { production: 'partial', staging: 'on', development: 'on' }, rollout: 10 },
+      { key: 'password-strength', description: 'Enhanced password requirements', tags: ['rollout', 'auth'], status: { production: 'on', staging: 'on', development: 'on' }, rollout: 100 },
+      { key: 'analytics-v3', description: 'Event streaming analytics pipeline', tags: ['experiment', 'data'], status: { production: 'off', staging: 'partial', development: 'on' }, rollout: 0 },
+      { key: 'user-segments', description: 'Dynamic user segmentation engine', tags: ['experiment', 'ml'], status: { production: 'partial', staging: 'on', development: 'on' }, rollout: 15 },
+      { key: 'webhook-retry', description: 'Exponential backoff for webhooks', tags: ['ops'], status: { production: 'on', staging: 'on', development: 'on' }, rollout: 100 },
+    ];
+  }
 // Start server with stdio transport
 async function main() {
   const transport = new StdioServerTransport();
