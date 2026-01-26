@@ -12,12 +12,33 @@ A demo MCP server showcasing interactive UI capabilities using the [MCP Apps Ext
 
 ## Tools
 
-| Tool | Description | UI Features |
-|------|-------------|-------------|
-| `hello_world` | Simple greeting demo | Input field, preview, send message to chat |
-| `list_sort` | Interactive list reordering | Drag-and-drop, AI-assisted sorting, save order |
-| `flame_graph` | Performance profiler visualization | Click-to-zoom call hierarchy, tooltips, analyze hot paths |
-| `feature_flags` | Feature flag selector | Multi-select, env tabs (prod/stage/dev), generate SDK code |
+### `list_sort` — Interactive List Reordering
+
+**Before:** Agent receives list data from an MCP tool → proposes a sorted order based on its analysis → user reads text output and requests adjustments → multiple back-and-forth messages to align with actual preferences.
+
+**With MCP Apps:** Agent displays a drag-and-drop interface alongside its suggested order. User applies domain knowledge to reorder items visually, or clicks "Ask AI to Sort" for the agent's reasoning—true collaboration where both contribute.
+
+> 🖱️ Drag-and-drop reordering · 🤖 "Ask AI to Sort" · ↩️ Reset · 💾 Save to chat
+
+---
+
+### `flame_graph` — Performance Profiler Visualization
+
+**Before:** Agent receives CPU profile data from an MCP tool → analyzes the JSON and identifies bottlenecks → user sees only the agent's text summary → no way to validate hypotheses or apply domain-specific context.
+
+**With MCP Apps:** Agent renders an interactive flame graph and can annotate suspected hot paths. User explores the visualization with their own domain knowledge—confirming or rejecting the agent's hypotheses, drilling into areas the agent might have overlooked.
+
+> 🔍 Click-to-zoom hierarchy · 💬 Hover tooltips · 🧭 Breadcrumb nav · 📊 Send frame to chat
+
+---
+
+### `feature_flags` — Feature Flag Selector
+
+**Before:** Agent fetches flag configuration from an MCP tool → summarizes which flags exist and their status → user cross-references with deployment context → asks agent to generate integration code separately.
+
+**With MCP Apps:** Agent displays a searchable flag picker with live environment status. User selects flags based on their release priorities, switches between prod/staging/dev views, and generates SDK code—agent provides data, user drives decisions.
+
+> 🌍 Environment tabs · 🔎 Search & filter · ☑️ Multi-select · 📝 Generate SDK code
 
 ## Quick Start
 
