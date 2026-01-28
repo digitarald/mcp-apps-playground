@@ -99,6 +99,7 @@ export function MY_UI_HTML(): string {
 | URI scheme | `https://`, `file://` | `ui://` |
 | Tool registration | `server.tool()` | `server.registerTool()` with `_meta` |
 | Data passing | Template parameters | `ui/notifications/tool-input` |
+| External fetch/CDN | Just call `fetch()` | Declare domains in `_meta.ui.csp` |
 | VS Code setting | Just enable | Enable `chat.mcp.apps.enabled` + **restart** |
 
 ## UI Lifecycle
@@ -175,7 +176,8 @@ For complex UI interactions beyond basic tool→UI data flow, load [references/p
 |---------|-------------|
 | **Awaiting User Input** | Tool needs to wait for user interaction before returning (forms, selections, confirmations) |
 | **Calling Other Tools** | UI needs to invoke additional MCP tools |
-| **Resource Metadata** | CSP configuration, border preferences, sizing hints |
+| **Resource Metadata** | Border preferences, sizing hints |
+| **Loading External Resources** | Configure CSP via `_meta.ui.csp` to allow external APIs, CDNs, fonts, embeds |
 | **Reference Examples** | Production patterns from ext-apps repo (charts, graphs, React, vanilla JS) |
 
 ## Gotchas
@@ -189,6 +191,8 @@ For complex UI interactions beyond basic tool→UI data flow, load [references/p
 4. **Rebuild + restart** - After code changes: `npm run build` then restart MCP server in VS Code.
 
 5. **MIME type duplication** - Must set `text/html;profile=mcp-app` in BOTH resource options AND contents array. Missing either causes silent failure.
+
+6. **External resources blocked by default** - UI runs with strict CSP. To use external APIs/CDNs, you MUST declare allowed domains in `_meta.ui.csp`. See [patterns.md](./references/patterns.md#loading-external-resources-csp-configuration).
 
 ## Debugging
 

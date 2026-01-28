@@ -6,6 +6,7 @@
 2. [Reference Examples (ext-apps repo)](#reference-examples)
 3. [Calling Other Tools](#calling-other-tools)
 4. [Resource Metadata](#resource-metadata)
+5. [Loading External Resources (CSP Configuration)](#loading-external-resources-csp-configuration)
 
 ## Awaiting User Input (Blocking Pattern)
 
@@ -134,15 +135,13 @@ server.resource("my-ui", "ui://my-server/my-tool", { ... }, async (uri) => ({
     text: MY_UI_HTML(),
     _meta: {
       ui: {
-        // Content Security Policy - domains the UI can access
+        // Content Security Policy (see below)
         csp: {
-          "img-src": ["https://example.com"],
-          "connect-src": ["https://api.example.com"]
+          connectDomains: ["https://api.example.com"],
+          resourceDomains: ["https://cdn.example.com"]
         },
         // Request no host border around iframe
-        prefersBorder: false,
-        // Preferred initial size
-        preferredSize: { width: 400, height: 300 }
+        prefersBorder: false
       }
     }
   }]
@@ -150,3 +149,117 @@ server.resource("my-ui", "ui://my-server/my-tool", { ... }, async (uri) => ({
 ```
 
 Note: Host may ignore preferences based on layout constraints.
+
+## Loading External Resources (CSP Configuration)
+
+MCP Apps run in sandboxed iframes with strict Content Security Policy. To load external resources (APIs, CDNs, fonts, images), you **must** declare allowed domains in `_meta.ui.csp`.
+
+### Default CSP (No External Access)
+
+If `csp` is omitted, the host enforces a **restrictive default**:
+
+```
+default-src 'none';
+script-src 'self' 'unsafe-inline';
+style-src 'self' 'unsafe-inline';
+img-src 'self' data:;
+media-src 'self' data:;
+connect-src 'none';
+```
+
+This blocks ALL external network requests and resources.
+
+### CSP Properties
+
+| Property | CSP Directive | Use Case |
+|----------|---------------|----------|
+| `connectDomains` | `connect-src` | fetch(), XHR, WebSocket connections |
+| `resourceDomains` | `script-src`, `style-src`, `img-src`, `font-src`, `media-src` | CDN scripts, stylesheets, images, fonts |
+| `frameDomains` | `frame-src` | Embedded iframes (YouTube, Vimeo, etc.) |
+| `baseUriDomains` | `base-uri` | Allowed base URIs for the document |
+
+### Example: Loading External API and CDN
+
+```typescript
+server.resource("weather-ui", "ui://weather/dashboard", 
+  { mimeType: "text/html;profile=mcp-app" },
+  async (uri) => ({
+    contents: [{
+      uri: uri.href,
+      mimeType: "text/html;profile=mcp-app",
+      text: WEATHER_UI_HTML(),
+      _meta: {
+        ui: {
+          csp: {
+            // Allow API calls to weather service
+            connectDomains: ["https://api.openweathermap.org"],
+            // Allow loading from CDN (scripts, styles, fonts)
+            resourceDomains: ["https://cdn.jsdelivr.net", "https://fonts.googleapis.com"]
+          }
+        }
+      }
+    }]
+  })
+);
+```
+
+### Example: Embedding Video Players
+
+```typescript
+_meta: {
+  ui: {
+    csp: {
+      frameDomains: ["https://www.youtube.com", "https://player.vimeo.com"]
+    }
+  }
+}
+```
+
+### Example: Full Configuration with Permissions
+
+```typescript
+_meta: {
+  ui: {
+    csp: {
+      connectDomains: ["https://api.example.com", "wss://realtime.example.com"],
+      resourceDomains: ["https://cdn.example.com", "https://*.cloudflare.com"],
+      frameDomains: ["https://embed.example.com"],
+      baseUriDomains: ["https://cdn.example.com"]
+    },
+    permissions: {
+      camera: {},        // Request camera access
+      microphone: {},    // Request microphone access
+      geolocation: {},   // Request geolocation access
+      clipboardWrite: {} // Request clipboard write access
+    },
+    prefersBorder: true
+  }
+}
+```
+
+### How CSP is Enforced
+
+The host constructs CSP headers from your declarations:
+
+```javascript
+// Host builds CSP from your metadata
+const cspValue = `
+  default-src 'none';
+  script-src 'self' 'unsafe-inline' ${csp?.resourceDomains?.join(' ') || ''};
+  style-src 'self' 'unsafe-inline' ${csp?.resourceDomains?.join(' ') || ''};
+  connect-src 'self' ${csp?.connectDomains?.join(' ') || ''};
+  img-src 'self' data: ${csp?.resourceDomains?.join(' ') || ''};
+  font-src 'self' ${csp?.resourceDomains?.join(' ') || ''};
+  media-src 'self' data: ${csp?.resourceDomains?.join(' ') || ''};
+  frame-src ${csp?.frameDomains?.join(' ') || "'none'"};
+  object-src 'none';
+  base-uri ${csp?.baseUriDomains?.join(' ') || "'self'"};
+`;
+```
+
+### Key Points
+
+- **Host may further restrict** but will NOT allow undeclared domains
+- **Wildcard subdomains** are supported: `https://*.example.com`
+- **Host logs CSP** for security auditing
+- **Permissions are optional** - hosts may ignore them; use JS feature detection as fallback
