@@ -20,6 +20,7 @@ import { HELLO_WORLD_UI } from "./ui/hello-world.js";
 import { LIST_SORT_UI } from "./ui/list-sort.js";
 import { FLAME_GRAPH_UI } from "./ui/flame-graph.js";
 import { FEATURE_FLAGS_UI } from "./ui/feature-flags.js";
+import { DATABASE_QUERY_UI } from "./ui/database-query.js";
 import * as fs from "fs";
 
 // Log file for debugging client capabilities
@@ -584,6 +585,98 @@ ${analysis.recommendations.map((r: string) => `- ${r}`).join('\n')}`;
       { key: 'webhook-retry', description: 'Exponential backoff for webhooks', tags: ['ops'], status: { production: 'on', staging: 'on', development: 'on' }, rollout: 100 },
     ];
   }
+
+  // =========================================
+  // Database Query - Sales Data Explorer
+  // =========================================
+
+  // Register database query UI resource
+  server.resource(
+    "database-query-ui",
+    "ui://mcp-apps-playground/database-query",
+    {
+      description: "Interactive sales database query UI with filters and preview",
+      mimeType: "text/html;profile=mcp-app",
+    },
+    async (uri) => {
+      log(`📱 resources/read called for: ${uri.href}`);
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "text/html;profile=mcp-app",
+            text: DATABASE_QUERY_UI(),
+          },
+        ],
+      };
+    }
+  );
+
+  // Register database_query tool
+  server.registerTool(
+    "database_query",
+    {
+      description: "Query and filter sales database with interactive UI. Filter by date range, category, status, sales rep, and amount. Preview data in table format and export summaries.",
+      inputSchema: {
+        dateRange: z.enum(["7d", "30d", "90d", "all"]).optional().describe("Date range filter (default: 30d)"),
+        category: z.enum(["Electronics", "Clothing", "Home", "Sports", "Books"]).optional().describe("Product category filter"),
+        status: z.enum(["completed", "pending", "shipped", "cancelled"]).optional().describe("Order status filter"),
+        salesRep: z.string().optional().describe("Filter by sales representative name"),
+        minAmount: z.number().optional().describe("Minimum order amount filter"),
+      },
+      _meta: {
+        ui: {
+          resourceUri: "ui://mcp-apps-playground/database-query",
+          visibility: ["model", "app"],
+        },
+      },
+    },
+    async ({ dateRange, category, status, salesRep, minAmount }, extra) => {
+      const progressToken = (extra._meta as Record<string, unknown> | undefined)?.progressToken as string | number | undefined;
+
+      if (progressToken !== undefined) {
+        await extra.sendNotification({
+          method: "notifications/progress",
+          params: {
+            progressToken,
+            progress: 0,
+            message: `🗄️ Querying sales database...`
+          }
+        });
+      }
+
+      log(`🔧 Tool database_query called: dateRange=${dateRange || '30d'}, category=${category || 'all'}, status=${status || 'all'}`);
+
+      // Generate mock summary stats
+      const totalOrders = 150;
+      const totalRevenue = 89432;
+      const avgOrder = Math.round(totalRevenue / totalOrders);
+
+      return {
+        content: [{
+          type: "text" as const,
+          text: `## Sales Database Query\n\n` +
+            `**Filters applied:** ${[dateRange || '30d', category, status, salesRep, minAmount ? '$' + minAmount + '+' : null].filter(Boolean).join(' | ') || 'None'}\n\n` +
+            `**Summary:** ${totalOrders} orders | $${totalRevenue.toLocaleString()} revenue | $${avgOrder} avg order\n\n` +
+            `*Use the interactive UI to explore data, apply filters, and export results.*`
+        }],
+        structuredContent: {
+          filters: {
+            dateRange: dateRange || '30d',
+            category: category || null,
+            status: status || null,
+            salesRep: salesRep || null,
+            minAmount: minAmount || null,
+          },
+          summary: {
+            totalOrders,
+            totalRevenue,
+            avgOrder,
+          },
+        },
+      };
+    }
+  );
 // Start server with stdio transport
 async function main() {
   const transport = new StdioServerTransport();

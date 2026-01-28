@@ -167,19 +167,28 @@ function escapeHtml(text) {
 }
 ```
 
+## Advanced Patterns
+
+For complex UI interactions beyond basic tool→UI data flow, load [references/patterns.md](references/patterns.md). Topics include:
+
+| Pattern | When to use |
+|---------|-------------|
+| **Awaiting User Input** | Tool needs to wait for user interaction before returning (forms, selections, confirmations) |
+| **Calling Other Tools** | UI needs to invoke additional MCP tools |
+| **Resource Metadata** | CSP configuration, border preferences, sizing hints |
+| **Reference Examples** | Production patterns from ext-apps repo (charts, graphs, React, vanilla JS) |
+
 ## Gotchas
 
 1. **Templates are static** - Don't pass data via template string interpolation. Data arrives via `tool-input` notification.
 
-2. **No `awaitCompletion`** - MCP Apps cannot block tool execution. Use `ui/message` to send results back to chat for follow-up.
+2. **VS Code capability detection** - VS Code uses `chat.mcp.apps.enabled` setting, NOT protocol capability negotiation. Don't rely on `extensions["io.modelcontextprotocol/ui"]`.
 
-3. **VS Code capability detection** - VS Code uses `chat.mcp.apps.enabled` setting, NOT protocol capability negotiation. Don't rely on `extensions["io.modelcontextprotocol/ui"]`.
+3. **Script escaping** - Use `<\/script>` in template strings to avoid breaking the outer script.
 
-4. **Script escaping** - Use `<\/script>` in template strings to avoid breaking the outer script.
+4. **Rebuild + restart** - After code changes: `npm run build` then restart MCP server in VS Code.
 
-5. **Rebuild + restart** - After code changes: `npm run build` then restart MCP server in VS Code.
-
-6. **MIME type duplication** - Must set `text/html;profile=mcp-app` in BOTH resource options AND contents array. Missing either causes silent failure.
+5. **MIME type duplication** - Must set `text/html;profile=mcp-app` in BOTH resource options AND contents array. Missing either causes silent failure.
 
 ## Debugging
 
@@ -200,6 +209,6 @@ src/
 
 ### Reference Files
 
-- [references/patterns.md](references/patterns.md) - Complete templates, forms, charts, lists
+- [references/patterns.md](references/patterns.md) - Advanced patterns (awaiting user input, calling tools, CSP, examples)
 - [references/debugging.md](references/debugging.md) - Logging setup
 - [references/troubleshooting.md](references/troubleshooting.md) - Common issues and fixes
